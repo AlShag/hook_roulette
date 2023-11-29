@@ -19,7 +19,14 @@ class GameRoundLogManager(models.Manager):
             self.values("player_id")
             .annotate(
                 rounds_count=Count("round_id", distinct=True),
-                avg_spins=Avg("given_number"),
+                total_spins=Count("id"),
+            )
+            .filter(rounds_count__gt=0)
+            .annotate(
+                avg_spins=models.ExpressionWrapper(
+                    models.F("total_spins") / models.F("rounds_count"),
+                    output_field=models.FloatField(),
+                )
             )
             .order_by("-rounds_count")[:10]
         )
